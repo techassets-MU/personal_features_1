@@ -30,6 +30,7 @@ class ProjectPendingInbox(models.Model):
         help="Usuario que creó el pendiente.",
     )
     done = fields.Boolean(string="Hecho")
+    active = fields.Boolean(string="Activo", default=True)
 
     # Trazabilidad inversa
     task_id = fields.Many2one("project.task", string="Tarea creada", readonly=True)
@@ -134,6 +135,15 @@ class ProjectPendingInbox(models.Model):
         pass
 
     def write(self, vals):
+        # Bloquear cambio de tipo si ya existe tarea o proyecto creado
+        if "type" in vals:
+            for record in self:
+                if record.task_id or record.project_id:
+                    raise ValidationError(
+                        _(
+                            "No puede cambiar el tipo porque ya se generó una Tarea o Proyecto desde este registro. Archive este pendiente y cree uno nuevo con el tipo correcto."
+                        )
+                    )
         new_name = vals.get("name")
         res = super().write(vals)
         # Auto crear según tipo seleccionado si aún no existe
@@ -149,6 +159,14 @@ class ProjectPendingInbox(models.Model):
                     record.task_id.with_context(skip_task_sync=True).write({"name": new_name})
                 if record.project_id:
                     record.project_id.with_context(skip_project_sync=True).write({"name": new_name})
+        # Sincronizar archivado (active) bidireccional cuando cambia en pending
+        if "active" in vals and not self.env.context.get("skip_pending_archive_sync"):
+            new_active = vals.get("active")
+            for record in self:
+                if record.task_id:
+                    record.task_id.with_context(skip_task_archive_sync=True).write({"active": new_active})
+                if record.project_id:
+                    record.project_id.with_context(skip_project_archive_sync=True).write({"active": new_active})
         return res
 
 

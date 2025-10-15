@@ -63,7 +63,7 @@
                     <group>
                         <group>
                             <field name="name"/>
-                            <field name="type"/>
+                            <field name="type" readonly="task_id or project_id"/>
                             <field name="priority_quadrant"/>
                             <field name="user_id"/>
                             <field name="done"/>
