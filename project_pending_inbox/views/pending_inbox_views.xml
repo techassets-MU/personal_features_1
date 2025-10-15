@@ -90,6 +90,17 @@
         </field>
     </record>
 
+    <record id="view_project_pending_inbox_search" model="ir.ui.view">
+        <field name="name">project.pending.inbox.search</field>
+        <field name="model">project.pending.inbox</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Pendientes">
+                <field name="name"/>
+                <filter name="archived" string="Archivados" domain="[('active','=',False)]"/>
+            </search>
+        </field>
+    </record>
+
 </odoo>
 
 
