@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Proyecto por defecto para tareas creadas desde el buzón (si no existe se crea uno mínimo) -->
+    <record id="project_pending_inbox_default_project" model="project.project">
+        <field name="name">Inbox</field>
+    </record>
+</odoo>
+
+

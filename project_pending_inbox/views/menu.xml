@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Insertar antes del menú de Tareas en Project -->
+    <menuitem id="menu_project_pending_root" name="Pendientes" parent="project.menu_main_pm" sequence="0"/>
+    <menuitem id="menu_project_pending_inbox" name="Buzón de Pendientes" parent="menu_project_pending_root" action="action_project_pending_inbox" sequence="1"/>
+
+    <!-- Ajustar secuencia del menú 'Tasks' para ir después -->
+    <record id="project.menu_project_management" model="ir.ui.menu">
+        <field name="sequence">2</field>
+    </record>
+</odoo>
+
+
