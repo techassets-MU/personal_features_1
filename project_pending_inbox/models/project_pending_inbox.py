@@ -134,6 +134,7 @@ class ProjectPendingInbox(models.Model):
         pass
 
     def write(self, vals):
+        new_name = vals.get("name")
         res = super().write(vals)
         # Auto crear según tipo seleccionado si aún no existe
         for record in self:
@@ -141,6 +142,13 @@ class ProjectPendingInbox(models.Model):
                 record._create_task_from_pending()
             elif vals.get("type") == "project" and not record.project_id:
                 record._create_project_from_pending()
+        # Propagar cambio de nombre a tarea/proyecto vinculados (evitar bucles con contexto)
+        if new_name and not self.env.context.get("skip_pending_sync"):
+            for record in self:
+                if record.task_id:
+                    record.task_id.with_context(skip_task_sync=True).write({"name": new_name})
+                if record.project_id:
+                    record.project_id.with_context(skip_project_sync=True).write({"name": new_name})
         return res
 
 

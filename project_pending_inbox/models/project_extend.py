@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class ProjectTask(models.Model):
@@ -11,6 +11,15 @@ class ProjectTask(models.Model):
         help="Origen del registro desde el buzón de pendientes indefinidos.",
     )
 
+    def write(self, vals):
+        new_name = vals.get("name")
+        res = super().write(vals)
+        if new_name and not self.env.context.get("skip_task_sync"):
+            for task in self:
+                if task.pending_inbox_id:
+                    task.pending_inbox_id.with_context(skip_pending_sync=True).write({"name": new_name})
+        return res
+
 
 class ProjectProject(models.Model):
     _inherit = "project.project"
@@ -21,5 +30,14 @@ class ProjectProject(models.Model):
         index=True,
         help="Origen del registro desde el buzón de pendientes indefinidos.",
     )
+
+    def write(self, vals):
+        new_name = vals.get("name")
+        res = super().write(vals)
+        if new_name and not self.env.context.get("skip_project_sync"):
+            for project in self:
+                if project.pending_inbox_id:
+                    project.pending_inbox_id.with_context(skip_pending_sync=True).write({"name": new_name})
+        return res
 
 
