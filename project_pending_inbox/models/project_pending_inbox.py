@@ -7,6 +7,7 @@ class ProjectPendingInbox(models.Model):
     _description = "Pendientes indefinidos para clasificar como tarea o proyecto"
     _order = "create_date desc"
 
+    sequence = fields.Integer(string='Secuencia', default=10)
     name = fields.Char(string="Nombre", required=True)
     type = fields.Selection(
         selection=[("task", "Tarea"), ("project", "Proyecto")],
@@ -41,7 +42,13 @@ class ProjectPendingInbox(models.Model):
         string="Fecha límite (tarea)",
         help="Si es Urgente o Urgente e Importante, la tarea requiere una fecha límite.",
     )
-    project_company_id = fields.Many2one("res.company", string="Compañía del proyecto")
+    project_company_id = fields.Many2one(
+        "res.company", 
+        string="Compañía del proyecto",
+        default=lambda self: self.env.company,  # Compañía actual del usuario
+        help="Compañía a la que pertenecerá el proyecto."
+    )
+
 
     @api.constrains("priority_quadrant", "type", "task_deadline")
     def _check_deadline_when_urgent(self):
@@ -96,8 +103,13 @@ class ProjectPendingInbox(models.Model):
             "name": self.name,
             "pending_inbox_id": self.id,
         }
+        # Asegurar que siempre haya una compañía
         if self.project_company_id:
             vals["company_id"] = self.project_company_id.id
+        else:
+            # Usar la compañía del usuario actual como fallback
+            vals["company_id"] = self.env.company.id
+
         project = self.env["project.project"].create(vals)
         self.project_id = project.id
         return project
@@ -170,3 +182,23 @@ class ProjectPendingInbox(models.Model):
         return res
 
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Sobrescribir create para crear automáticamente tarea o proyecto"""
+        records = super().create(vals_list)
+        
+        # Crear tarea o proyecto automáticamente según el tipo
+        for record in records:
+            if record.type == "task" and not record.task_id:
+                try:
+                    record._create_task_from_pending()
+                except Exception as e:
+                    _logger.error(f"Error creando tarea en create: {e}", exc_info=True)
+                    
+            elif record.type == "project" and not record.project_id:
+                try:
+                    record._create_project_from_pending()
+                except Exception as e:
+                    _logger.error(f"Error creando proyecto en create: {e}", exc_info=True)
+        
+        return records

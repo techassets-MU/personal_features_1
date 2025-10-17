@@ -4,7 +4,8 @@
         <field name="name">project.pending.inbox.list</field>
         <field name="model">project.pending.inbox</field>
         <field name="arch" type="xml">
-            <list string="Pendientes indefinidos" default_order="create_date desc">
+            <list string="Pendientes indefinidos" default_order="sequence, create_date desc">
+                <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="type"/>
                 <field name="priority_quadrant"/>
