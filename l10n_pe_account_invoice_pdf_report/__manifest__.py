@@ -1,7 +1,7 @@
 {
     'name': 'Peru - Formato de Factura de Venta en PDF',
     'version': '1.0',
-    'summary': 'Formato de Factura de Venta en PDF para la localización peruana. Segun ejericicio SAMEMOTION',
+    'summary': 'Formato de Factura de Venta PDF con QR. Segun ejericicio SAMEMOTION',
     'description': """
         Este módulo permite generar el formato de factura de venta en PDF
         desde el módulo de facturas de venta (account.move).
